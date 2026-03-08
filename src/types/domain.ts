@@ -5,7 +5,7 @@ export type SessionStatus = "active" | "paused" | "completed";
 export type Profile = {
   id: string;
   email: string | null;
-  full_name: string | null;
+  full_name: string;
   role: AppRole;
 };
 

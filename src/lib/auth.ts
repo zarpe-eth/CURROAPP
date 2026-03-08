@@ -24,6 +24,23 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data as Profile | null;
 }
 
+export async function getVisibleProfiles(currentUserId: string): Promise<Profile[]> {
+  const currentProfile = await getProfile(currentUserId);
+  if (!currentProfile) return [];
+
+  if (currentProfile.role !== "admin") {
+    return [currentProfile];
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id,email,full_name,role")
+    .order("full_name", { ascending: true });
+
+  return (data ?? []) as Profile[];
+}
+
 export async function assertAdmin(userId: string) {
   const profile = await getProfile(userId);
   if (!profile || profile.role !== "admin") {
@@ -33,5 +50,18 @@ export async function assertAdmin(userId: string) {
 
 export function isAdmin(role: AppRole | undefined) {
   return role === "admin";
+}
+
+export function resolveSelectedUserId(
+  currentUserId: string,
+  selectableProfiles: Profile[],
+  requestedUserId?: string,
+) {
+  const validIds = new Set(selectableProfiles.map((profile) => profile.id));
+  if (requestedUserId && validIds.has(requestedUserId)) {
+    return requestedUserId;
+  }
+
+  return currentUserId;
 }
 

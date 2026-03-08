@@ -1,6 +1,7 @@
-﻿import { MonthlyHoursChart } from "@/components/charts/monthly-hours-chart";
+import { MonthlyHoursChart } from "@/components/charts/monthly-hours-chart";
+import { EmployeeSelector } from "@/components/layout/employee-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireUser } from "@/lib/auth";
+import { getProfile, getVisibleProfiles, requireUser, resolveSelectedUserId } from "@/lib/auth";
 import { formatCurrency } from "@/lib/constants";
 import { buildMonthlyMetrics, getAppSettings, getSessionsByMonth } from "@/lib/data";
 import { getCurrentMonth } from "@/lib/time/dates";
@@ -8,31 +9,40 @@ import { getCurrentMonth } from "@/lib/time/dates";
 export default async function MonthlyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; userId?: string }>;
 }) {
   const user = await requireUser();
+  const profile = await getProfile(user.id);
+  const visibleProfiles = await getVisibleProfiles(user.id);
   const settings = await getAppSettings();
   const params = await searchParams;
   const month = params.month ?? getCurrentMonth();
-  const sessions = await getSessionsByMonth(month, settings.timezone, user.id);
+  const selectedUserId = resolveSelectedUserId(user.id, visibleProfiles, params.userId);
+  const sessions = await getSessionsByMonth(month, settings.timezone, selectedUserId);
   const metrics = buildMonthlyMetrics(sessions, settings.hourly_rate_eur, settings.timezone);
 
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Resumen mensual</h1>
-        <form className="flex items-center gap-2" method="get">
-          <label htmlFor="month" className="text-sm text-muted-foreground">
-            Mes
-          </label>
-          <input
-            id="month"
-            name="month"
-            type="month"
-            defaultValue={month}
-            className="h-10 rounded-xl border border-border px-3"
-          />
-        </form>
+        <div className="flex items-center gap-3">
+          {profile?.role === "admin" ? (
+            <EmployeeSelector profiles={visibleProfiles} selectedUserId={selectedUserId} />
+          ) : null}
+          <form className="flex items-center gap-2" method="get">
+            <input type="hidden" name="userId" value={selectedUserId} />
+            <label htmlFor="month" className="text-sm text-muted-foreground">
+              Mes
+            </label>
+            <input
+              id="month"
+              name="month"
+              type="month"
+              defaultValue={month}
+              className="h-10 rounded-xl border border-border px-3"
+            />
+          </form>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -66,4 +76,3 @@ function MetricCard({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
-

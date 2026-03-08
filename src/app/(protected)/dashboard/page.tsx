@@ -1,20 +1,30 @@
-﻿import { SessionControls } from "@/components/dashboard/session-controls";
+import { SessionControls } from "@/components/dashboard/session-controls";
 import { LiveTimer } from "@/components/dashboard/live-timer";
+import { EmployeeSelector } from "@/components/layout/employee-selector";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProfile, requireUser } from "@/lib/auth";
+import { getProfile, getVisibleProfiles, requireUser, resolveSelectedUserId } from "@/lib/auth";
 import { DEFAULT_HOURLY_RATE, formatCurrency } from "@/lib/constants";
 import { getActiveSession, getAppSettings, getTodaySummary } from "@/lib/data";
 import { calculateEffectiveDurationSeconds, formatDuration } from "@/lib/time/calc";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ userId?: string }>;
+}) {
   const user = await requireUser();
   const profile = await getProfile(user.id);
-  const settings = await getAppSettings();
-  const activeSession = await getActiveSession(user.id);
+  const visibleProfiles = await getVisibleProfiles(user.id);
+  const params = await searchParams;
 
+  const selectedUserId = resolveSelectedUserId(user.id, visibleProfiles, params.userId);
+  const selectedProfile = visibleProfiles.find((item) => item.id === selectedUserId) ?? profile;
+
+  const settings = await getAppSettings();
+  const activeSession = await getActiveSession(selectedUserId);
   const today = await getTodaySummary(
-    user.id,
+    selectedUserId,
     settings.hourly_rate_eur ?? DEFAULT_HOURLY_RATE,
     settings.timezone,
   );
@@ -29,6 +39,7 @@ export default async function DashboardPage() {
     : 0;
 
   const status = activeSession?.status ?? "idle";
+  const isOwnView = user.id === selectedUserId;
 
   return (
     <section className="space-y-6">
@@ -41,14 +52,23 @@ export default async function DashboardPage() {
                 {status === "active" ? "Trabajando" : status === "paused" ? "En pausa" : "Sin jornada activa"}
               </CardTitle>
             </div>
+            {profile?.role === "admin" ? (
+              <EmployeeSelector profiles={visibleProfiles} selectedUserId={selectedUserId} />
+            ) : null}
             <Badge className="text-sm">
-              {profile?.role === "admin" ? "admin" : "empleado"} · {settings.employee_display_name}
+              {profile?.role === "admin" ? "admin" : "empleado"} · {selectedProfile?.full_name}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {activeSession ? <LiveTimer initialSeconds={activeSeconds} isRunning={status === "active"} /> : null}
-          <SessionControls status={status} />
+          {isOwnView ? (
+            <SessionControls status={status} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Vista en modo supervisión. Para fichar jornada, selecciona tu propio usuario.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -89,4 +109,3 @@ export default async function DashboardPage() {
     </section>
   );
 }
-

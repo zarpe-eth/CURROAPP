@@ -23,3 +23,25 @@ export async function signOutAction() {
   redirect("/login");
 }
 
+export async function updatePasswordAction(formData: FormData) {
+  const password = String(formData.get("password") ?? "");
+  const passwordConfirm = String(formData.get("password_confirm") ?? "");
+
+  if (!password || password.length < 8) {
+    redirect("/settings?pwError=La+contrase%C3%B1a+debe+tener+al+menos+8+caracteres");
+  }
+
+  if (password !== passwordConfirm) {
+    redirect("/settings?pwError=Las+contrase%C3%B1as+no+coinciden");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    redirect(`/settings?pwError=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/settings?pwOk=Contrase%C3%B1a+actualizada");
+}
+
