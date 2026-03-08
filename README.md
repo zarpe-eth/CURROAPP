@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# CURROAPP
 
-## Getting Started
+CURROAPP es un MVP `desktop-first` para controlar el tiempo de trabajo de soporte (Javi), con cálculo automático de horas y dinero por tarifa/hora.
 
-First, run the development server:
+## Stack
+
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui (componentes base en `src/components/ui` + `components.json`)
+- Supabase (Auth + PostgreSQL + RLS)
+- Recharts (gráfico mensual)
+- Preparado para Vercel
+
+## Funcionalidades MVP
+
+- Autenticación con email/contraseña (Supabase Auth)
+- Roles `admin` y `employee`
+- Jornada con estados: empezar, pausar, reanudar, terminar
+- Cronómetro en vivo de tiempo efectivo (pausas excluidas)
+- Dashboard con estado actual, horas hoy, dinero hoy y tarifa
+- Historial por mes
+- Resumen mensual + gráfico de barras (horas por día)
+- Ajustes globales (tarifa, zona horaria, nombre visible)
+- Estructura preparada para Tidio (`ticket_stats` + `src/lib/tidio/service.ts`)
+
+## Requisitos
+
+- Node.js 20+
+- Proyecto en Supabase
+
+## Configuración local
+
+1. Instalar dependencias:
+
+```bash
+npm install
+```
+
+2. Configurar variables de entorno:
+
+```bash
+cp .env.example .env.local
+```
+
+Rellena en `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+3. Crear esquema en Supabase:
+
+- Abre SQL Editor en Supabase.
+- Ejecuta completo: `supabase/schema.sql`.
+
+4. Levantar app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App en `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Flujo de usuarios
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `silvestelar@gmail.com` se asigna automáticamente como `admin` al registrarse.
+- El resto se crea como `employee`.
+- `employee`: solo ve y edita sus propios datos.
+- `admin`: ve todos los datos y puede cambiar ajustes globales.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev
+npm run lint
+npm run test
+npm run build
+npm run start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura principal
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```txt
+src/
+  app/
+    (auth)/login
+    (protected)/dashboard
+    (protected)/history
+    (protected)/monthly
+    (protected)/settings
+  components/
+    ui/
+    dashboard/
+    charts/
+    layout/
+  lib/
+    actions/
+    supabase/
+    tidio/
+    time/
+  types/
+supabase/schema.sql
+```
 
-## Deploy on Vercel
+## Despliegue en Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Sube el repo a GitHub.
+2. Importa el proyecto en Vercel.
+3. Añade variables de entorno en Vercel:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Deploy.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notas de futuro (Tidio)
+
+- `ticket_stats` ya existe en DB.
+- `src/lib/tidio/service.ts` incluye tipos y punto de extensión para sincronización API.
+- No se implementa todavía la ingesta real de Tidio en este MVP.
+
