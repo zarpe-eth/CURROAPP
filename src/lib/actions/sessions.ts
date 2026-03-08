@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getAppSettings } from "@/lib/data";
 import { calculateEffectiveDurationSeconds, calculateMoneyFromSeconds } from "@/lib/time/calc";
 import type { WorkBreak } from "@/types/domain";
 
@@ -146,7 +145,12 @@ export async function resumeSessionAction() {
 export async function stopSessionAction() {
   const supabase = await createClient();
   const userId = await getCurrentUserId();
-  const { hourly_rate_eur } = await getAppSettings();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("hourly_rate_eur")
+    .eq("id", userId)
+    .single();
+  const hourlyRate = Number(profile?.hourly_rate_eur ?? 8);
 
   const { data: session } = await supabase
     .from("work_sessions")
@@ -190,7 +194,7 @@ export async function stopSessionAction() {
     now,
   );
 
-  const money = calculateMoneyFromSeconds(effectiveSeconds, hourly_rate_eur);
+  const money = calculateMoneyFromSeconds(effectiveSeconds, hourlyRate);
 
   const { error } = await supabase
     .from("work_sessions")

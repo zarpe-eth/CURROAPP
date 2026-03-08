@@ -17,7 +17,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id,email,full_name,role")
+    .select("id,email,full_name,hourly_rate_eur,role")
     .eq("id", userId)
     .single();
 
@@ -35,7 +35,7 @@ export async function getVisibleProfiles(currentUserId: string): Promise<Profile
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id,email,full_name,role")
+    .select("id,email,full_name,hourly_rate_eur,role")
     .order("full_name", { ascending: true });
 
   return (data ?? []) as Profile[];

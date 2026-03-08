@@ -20,9 +20,10 @@ CURROAPP es un MVP `desktop-first` para controlar el tiempo de trabajo de soport
 - Cronómetro en vivo de tiempo efectivo (pausas excluidas)
 - Dashboard con estado actual, horas hoy, dinero hoy y tarifa
 - Selector de empleado para admin en dashboard/historial/resumen mensual
+- Tarifa por empleado (default 8 EUR/h) gestionada por admin en `/team`
 - Historial por mes
 - Resumen mensual + gráfico de barras (horas por día)
-- Ajustes globales (tarifa, zona horaria, nombre visible)
+- Ajustes globales (zona horaria, etiqueta de equipo)
 - Cambio de contraseña desde ajustes para cualquier usuario autenticado
 - Estructura preparada para Tidio (`ticket_stats` + `src/lib/tidio/service.ts`)
 
@@ -70,7 +71,7 @@ App en `http://localhost:3000`.
 - `silvestelar@gmail.com` se asigna automáticamente como `admin` al registrarse.
 - El resto se crea como `employee`.
 - `employee`: solo ve y edita sus propios datos.
-- `admin`: ve todos los datos y puede cambiar ajustes globales.
+- `admin`: ve todos los datos, gestiona tarifas en `Equipo` y puede cambiar ajustes globales.
 
 ## Scripts
 

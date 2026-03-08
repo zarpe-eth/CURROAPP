@@ -66,9 +66,26 @@ export async function getTodaySummary(userId: string, hourlyRate: number, timezo
     );
   }, 0);
 
+  const money = sessions.reduce((acc, session) => {
+    if (typeof session.money_earned === "number") {
+      return acc + session.money_earned;
+    }
+
+    const sessionSeconds =
+      session.duration_seconds ??
+      calculateEffectiveDurationSeconds(
+        session.started_at,
+        session.ended_at,
+        session.work_breaks ?? [],
+        new Date().toISOString(),
+      );
+
+    return acc + calculateMoneyFromSeconds(sessionSeconds, hourlyRate);
+  }, 0);
+
   return {
     seconds,
-    money: calculateMoneyFromSeconds(seconds, hourlyRate),
+    money: Math.round(money * 100) / 100,
   };
 }
 
@@ -120,12 +137,28 @@ export function buildMonthlyMetrics(sessions: WorkSession[], hourlyRate: number,
 
   const workedDays = byDay.size;
   const avgHours = workedDays ? totalSeconds / 3600 / workedDays : 0;
+  const monthlyMoney = sessions.reduce((acc, session) => {
+    if (typeof session.money_earned === "number") {
+      return acc + session.money_earned;
+    }
+
+    const sessionSeconds =
+      session.duration_seconds ??
+      calculateEffectiveDurationSeconds(
+        session.started_at,
+        session.ended_at,
+        session.work_breaks ?? [],
+        new Date().toISOString(),
+      );
+
+    return acc + calculateMoneyFromSeconds(sessionSeconds, hourlyRate);
+  }, 0);
 
   return {
     totalHours: Math.round((totalSeconds / 3600) * 100) / 100,
     workedDays,
     averageHoursPerDay: Math.round(avgHours * 100) / 100,
-    monthlyMoney: calculateMoneyFromSeconds(totalSeconds, hourlyRate),
+    monthlyMoney: Math.round(monthlyMoney * 100) / 100,
     dailyHours: points,
     timezone,
   };

@@ -6,6 +6,7 @@ export type Profile = {
   id: string;
   email: string | null;
   full_name: string;
+  hourly_rate_eur: number;
   role: AppRole;
 };
 

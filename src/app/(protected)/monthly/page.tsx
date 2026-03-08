@@ -18,8 +18,9 @@ export default async function MonthlyPage({
   const params = await searchParams;
   const month = params.month ?? getCurrentMonth();
   const selectedUserId = resolveSelectedUserId(user.id, visibleProfiles, params.userId);
+  const selectedProfile = visibleProfiles.find((item) => item.id === selectedUserId) ?? profile;
   const sessions = await getSessionsByMonth(month, settings.timezone, selectedUserId);
-  const metrics = buildMonthlyMetrics(sessions, settings.hourly_rate_eur, settings.timezone);
+  const metrics = buildMonthlyMetrics(sessions, selectedProfile?.hourly_rate_eur ?? 8, settings.timezone);
 
   return (
     <section className="space-y-6">
@@ -47,14 +48,14 @@ export default async function MonthlyPage({
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Total horas" value={`${metrics.totalHours} h`} />
-        <MetricCard label="Días trabajados" value={`${metrics.workedDays}`} />
-        <MetricCard label="Media horas/día" value={`${metrics.averageHoursPerDay} h`} />
+        <MetricCard label="Dias trabajados" value={`${metrics.workedDays}`} />
+        <MetricCard label="Media horas/dia" value={`${metrics.averageHoursPerDay} h`} />
         <MetricCard label="Dinero mes" value={formatCurrency(metrics.monthlyMoney)} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Horas por día</CardTitle>
+          <CardTitle>Horas por dia</CardTitle>
         </CardHeader>
         <CardContent>
           <MonthlyHoursChart data={metrics.dailyHours} />

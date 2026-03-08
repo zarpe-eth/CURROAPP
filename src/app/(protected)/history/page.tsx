@@ -63,7 +63,7 @@ export default async function HistoryPage({
                 <TableHead>Fecha</TableHead>
                 <TableHead>Inicio</TableHead>
                 <TableHead>Fin</TableHead>
-                <TableHead>Duración</TableHead>
+                <TableHead>Duracion</TableHead>
                 <TableHead>Dinero</TableHead>
               </TableRow>
             </TableHeader>

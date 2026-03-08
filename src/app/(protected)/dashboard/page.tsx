@@ -4,7 +4,7 @@ import { EmployeeSelector } from "@/components/layout/employee-selector";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfile, getVisibleProfiles, requireUser, resolveSelectedUserId } from "@/lib/auth";
-import { DEFAULT_HOURLY_RATE, formatCurrency } from "@/lib/constants";
+import { formatCurrency } from "@/lib/constants";
 import { getActiveSession, getAppSettings, getTodaySummary } from "@/lib/data";
 import { calculateEffectiveDurationSeconds, formatDuration } from "@/lib/time/calc";
 
@@ -25,7 +25,7 @@ export default async function DashboardPage({
   const activeSession = await getActiveSession(selectedUserId);
   const today = await getTodaySummary(
     selectedUserId,
-    settings.hourly_rate_eur ?? DEFAULT_HOURLY_RATE,
+    selectedProfile?.hourly_rate_eur ?? 8,
     settings.timezone,
   );
 
@@ -51,6 +51,9 @@ export default async function DashboardPage({
               <CardTitle className="text-3xl">
                 {status === "active" ? "Trabajando" : status === "paused" ? "En pausa" : "Sin jornada activa"}
               </CardTitle>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Usuario seleccionado: <span className="font-semibold text-foreground">{selectedProfile?.full_name}</span>
+              </p>
             </div>
             {profile?.role === "admin" ? (
               <EmployeeSelector profiles={visibleProfiles} selectedUserId={selectedUserId} />
@@ -66,7 +69,7 @@ export default async function DashboardPage({
             <SessionControls status={status} />
           ) : (
             <p className="text-sm text-muted-foreground">
-              Vista en modo supervisión. Para fichar jornada, selecciona tu propio usuario.
+              Vista en modo supervision. Para fichar jornada, selecciona tu propio usuario.
             </p>
           )}
         </CardContent>
@@ -91,10 +94,10 @@ export default async function DashboardPage({
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <p className="text-sm text-muted-foreground">Tarifa por hora</p>
+            <p className="text-sm text-muted-foreground">Tarifa aplicada</p>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{formatCurrency(settings.hourly_rate_eur)}</p>
+            <p className="text-3xl font-semibold">{formatCurrency(selectedProfile?.hourly_rate_eur ?? 8)}</p>
           </CardContent>
         </Card>
         <Card>

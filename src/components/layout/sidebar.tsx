@@ -2,18 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Gauge, Settings, Table2 } from "lucide-react";
+import { CalendarDays, Gauge, Settings, Table2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { AppRole } from "@/types/domain";
 
 const items = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
   { href: "/history", label: "Historial", icon: Table2 },
   { href: "/monthly", label: "Resumen mensual", icon: CalendarDays },
+  { href: "/team", label: "Equipo", icon: Users, adminOnly: true },
   { href: "/settings", label: "Ajustes", icon: Settings },
 ];
 
-export function Sidebar() {
+type SidebarProps = {
+  role: AppRole;
+};
+
+export function Sidebar({ role }: SidebarProps) {
   const currentPath = usePathname();
+  const visibleItems = items.filter((item) => !item.adminOnly || role === "admin");
 
   return (
     <aside className="hidden w-64 border-r border-border bg-white/80 p-6 lg:block">
@@ -22,7 +29,7 @@ export function Sidebar() {
         <p className="mt-2 text-lg font-semibold">Control de soporte</p>
       </div>
       <nav className="space-y-2">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const active = currentPath === item.href;
           const Icon = item.icon;
 
