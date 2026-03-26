@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_EMPLOYEE_NAME, DEFAULT_HOURLY_RATE, DEFAULT_TIMEZONE } from "@/lib/constants";
 import { calculateEffectiveDurationSeconds, calculateMoneyFromSeconds } from "@/lib/time/calc";
 import { getMonthRangeInTimezone, getTodayRangeInTimezone } from "@/lib/time/dates";
-import type { AppSettings, DailyHoursPoint, DailyTicketStat, WorkSession } from "@/types/domain";
+import type { AppSettings, DailyHoursPoint, DailyTicketStat, Task, WorkSession } from "@/types/domain";
 
 export async function getAppSettings(): Promise<AppSettings> {
   const supabase = await createClient();
@@ -168,6 +168,28 @@ export async function getDailyTicketStatsByMonth(month: string, userId?: string)
   }
 
   return (data ?? []) as DailyTicketStat[];
+}
+
+export async function getVisibleTasks(assignedToUserId?: string): Promise<Task[]> {
+  const supabase = await createClient();
+
+  let query = supabase.from("tasks").select("*").order("created_at", { ascending: false });
+
+  if (assignedToUserId) {
+    query = query.eq("assigned_to", assignedToUserId);
+  }
+
+  const { data, error } = await query;
+
+  if (error?.message?.includes("Could not find the table 'public.tasks'")) {
+    return [];
+  }
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as Task[];
 }
 
 export function buildMonthlyMetrics(sessions: WorkSession[], hourlyRate: number, timezone: string) {
