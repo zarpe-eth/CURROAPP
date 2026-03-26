@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, CalendarDays, Gauge, Settings, Table2, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, CalendarDays, Gauge, ListTodo, Settings, Table2, Users, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AppRole } from "@/types/domain";
 
 const items: Array<{ href: string; label: string; icon: LucideIcon; adminOnly?: boolean }> = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/tasks", label: "Tareas", icon: ListTodo },
   { href: "/productivity", label: "Productividad", icon: BarChart3 },
   { href: "/history", label: "Historial", icon: Table2 },
   { href: "/monthly", label: "Resumen mensual", icon: CalendarDays },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countTasksByStatus, parseTaskPriority, parseTaskStatus } from "@/lib/actions/tasks";
+import { countTasksByStatus, parseTaskPriority, parseTaskStatus } from "@/lib/tasks";
 import type { Task } from "@/types/domain";
 
 describe("countTasksByStatus", () => {
