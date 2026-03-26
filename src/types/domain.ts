@@ -1,6 +1,8 @@
 ﻿export type AppRole = "admin" | "employee";
 
 export type SessionStatus = "active" | "paused" | "completed";
+export type TaskStatus = "pending" | "in_progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
 
 export type Profile = {
   id: string;
@@ -35,6 +37,18 @@ export type DailyTicketStat = {
   user_id: string;
   stat_date: string;
   tickets_resolved: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Task = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigned_to: string;
   created_by: string;
   created_at: string;
   updated_at: string;
