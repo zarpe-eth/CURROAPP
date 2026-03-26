@@ -3,15 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: 36 33% 98%;
-  --foreground: 210 18% 14%;
+  --background: 210 32% 97%;
+  --foreground: 217 32% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 210 18% 14%;
-  --primary: 197 82% 36%;
+  --card-foreground: 217 32% 14%;
+  --primary: 203 78% 34%;
   --primary-foreground: 0 0% 100%;
-  --muted: 36 20% 93%;
-  --muted-foreground: 215 15% 40%;
-  --border: 35 18% 87%;
+  --muted: 210 26% 93%;
+  --muted-foreground: 217 14% 41%;
+  --border: 214 23% 87%;
+  --ring: 203 78% 34%;
 }
 
 * {
@@ -20,6 +21,33 @@
 
 body {
   @apply bg-background text-foreground antialiased;
-  font-family: "Sora", "Segoe UI", sans-serif;
+  font-family: var(--font-sans), "Segoe UI", sans-serif;
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(14, 116, 144, 0.08), transparent 32%),
+    radial-gradient(circle at 90% 100%, rgba(30, 64, 175, 0.08), transparent 34%),
+    linear-gradient(180deg, #f4f7fb 0%, #eef3f9 44%, #f8fafc 100%);
+  background-attachment: fixed;
 }
 
+h1,
+h2,
+h3,
+.display-font {
+  font-family: var(--font-display), Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-enter {
+  animation: fade-up 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

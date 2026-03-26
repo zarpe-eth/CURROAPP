@@ -9,13 +9,13 @@ type TopBarProps = {
 
 export function TopBar({ name, role }: TopBarProps) {
   return (
-    <header className="mb-8 flex items-center justify-between rounded-2xl border border-border bg-white px-5 py-4">
+    <header className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white/90 px-5 py-4 shadow-[0_10px_28px_-18px_rgba(15,23,42,0.35)] backdrop-blur">
       <div>
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">Hola</p>
-        <p className="text-xl font-semibold">{name}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Sesion activa</p>
+        <p className="display-font text-[1.45rem] leading-none text-foreground">{name}</p>
       </div>
       <div className="flex items-center gap-3">
-        <Badge className="bg-muted text-muted-foreground">{role}</Badge>
+        <Badge>{role}</Badge>
         <form action={signOutAction}>
           <Button type="submit" variant="outline">
             Salir
@@ -25,4 +25,3 @@ export function TopBar({ name, role }: TopBarProps) {
     </header>
   );
 }
-

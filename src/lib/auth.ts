@@ -1,6 +1,38 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AppRole, Profile } from "@/types/domain";
+
+function normalizeEmail(email: string | null | undefined) {
+  return email?.trim().toLowerCase() ?? "";
+}
+
+export function hasAdminPrivileges(profile: Pick<Profile, "role" | "email"> | null | undefined) {
+  return profile?.role === "admin" || hasAdminPrivilegesFromEmail(profile?.email);
+}
+
+export function hasAdminPrivilegesFromEmail(email: string | null | undefined) {
+  return normalizeEmail(email) === "silvestelar@gmail.com";
+}
+
+async function isAdminViaRpc(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("is_admin", { uid: userId });
+  return Boolean(data);
+}
+
+export async function isUserAdmin(userId: string, authEmail?: string | null) {
+  const profile = await getProfile(userId);
+
+  if (hasAdminPrivileges(profile)) {
+    return true;
+  }
+
+  if (hasAdminPrivilegesFromEmail(authEmail)) {
+    return true;
+  }
+
+  return isAdminViaRpc(userId);
+}
 
 export async function requireUser() {
   const supabase = await createClient();
@@ -24,12 +56,12 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data as Profile | null;
 }
 
-export async function getVisibleProfiles(currentUserId: string): Promise<Profile[]> {
+export async function getVisibleProfiles(currentUserId: string, authEmail?: string | null): Promise<Profile[]> {
   const currentProfile = await getProfile(currentUserId);
-  if (!currentProfile) return [];
+  const admin = await isUserAdmin(currentUserId, authEmail);
 
-  if (currentProfile.role !== "admin") {
-    return [currentProfile];
+  if (!admin) {
+    return currentProfile ? [currentProfile] : [];
   }
 
   const supabase = await createClient();
@@ -41,9 +73,9 @@ export async function getVisibleProfiles(currentUserId: string): Promise<Profile
   return (data ?? []) as Profile[];
 }
 
-export async function assertAdmin(userId: string) {
-  const profile = await getProfile(userId);
-  if (!profile || profile.role !== "admin") {
+export async function assertAdmin(userId: string, authEmail?: string | null) {
+  const admin = await isUserAdmin(userId, authEmail);
+  if (!admin) {
     throw new Error("No autorizado");
   }
 }
@@ -64,4 +96,3 @@ export function resolveSelectedUserId(
 
   return currentUserId;
 }
-

@@ -1,6 +1,6 @@
 ﻿import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
-import { getProfile, requireUser } from "@/lib/auth";
+import { getProfile, isUserAdmin, requireUser } from "@/lib/auth";
 
 export default async function ProtectedLayout({
   children,
@@ -9,15 +9,16 @@ export default async function ProtectedLayout({
 }>) {
   const user = await requireUser();
   const profile = await getProfile(user.id);
+  const isAdmin = await isUserAdmin(user.id, user.email);
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f9f4ee_0%,#f4f8fb_50%,#f8f9fa_100%)]">
-      <div className="mx-auto flex max-w-[1480px]">
-        <Sidebar role={profile?.role ?? "employee"} />
-        <main className="w-full p-4 md:p-8">
+    <div className="min-h-screen">
+      <div className="mx-auto flex max-w-[1480px] gap-6 px-3 py-4 md:px-6 md:py-6">
+        <Sidebar role={isAdmin ? "admin" : "employee"} />
+        <main className="w-full animate-enter">
           <TopBar
             name={profile?.full_name ?? profile?.email ?? "Usuario"}
-            role={profile?.role === "admin" ? "Admin" : "Empleado"}
+            role={isAdmin ? "Admin" : "Empleado"}
           />
           {children}
         </main>
@@ -25,4 +26,3 @@ export default async function ProtectedLayout({
     </div>
   );
 }
-

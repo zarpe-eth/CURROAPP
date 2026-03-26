@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Profile } from "@/types/domain";
@@ -21,12 +21,12 @@ export function EmployeeSelector({ profiles, selectedUserId }: EmployeeSelectorP
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="employee-select" className="text-sm text-muted-foreground">
+      <label htmlFor="employee-select" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Empleado
       </label>
       <select
         id="employee-select"
-        className="h-10 min-w-72 rounded-xl border border-border bg-white px-3 text-sm"
+        className="h-10 min-w-72 rounded-xl border border-border/90 bg-white px-3 text-sm shadow-sm outline-none focus:border-primary/45"
         value={selectedUserId}
         onChange={(event) => onChange(event.target.value)}
       >

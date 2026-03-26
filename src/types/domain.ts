@@ -26,7 +26,34 @@ export type WorkSession = {
   status: SessionStatus;
   duration_seconds: number | null;
   money_earned: number | null;
+  one_hour_notified?: boolean;
   work_breaks?: WorkBreak[];
+};
+
+export type DailyTicketStat = {
+  id: string;
+  user_id: string;
+  stat_date: string;
+  tickets_resolved: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DailyProductivityPoint = {
+  date: string;
+  hoursWorked: number;
+  ticketsResolved: number;
+  ticketsPerHour: number | null;
+};
+
+export type MonthlyProductivityMetrics = {
+  dailyTickets: number;
+  monthlyTickets: number;
+  dailyTicketsPerHour: number | null;
+  monthlyTicketsPerHour: number | null;
+  averageDailyTickets: number;
+  dailyPoints: DailyProductivityPoint[];
 };
 
 export type AppSettings = {

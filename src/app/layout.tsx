@@ -1,11 +1,17 @@
 ﻿import type { Metadata } from "next";
-import { Sora } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 
-const sora = Sora({
+const manrope = Manrope({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sora",
+  variable: "--font-sans",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
 });
 
 export const metadata: Metadata = {
@@ -20,8 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${sora.variable} min-h-screen`}>{children}</body>
+      <body className={`${manrope.variable} ${fraunces.variable} min-h-screen`}>{children}</body>
     </html>
   );
 }
-

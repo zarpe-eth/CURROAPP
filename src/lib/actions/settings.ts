@@ -14,7 +14,7 @@ export async function updateSettingsAction(formData: FormData) {
     throw new Error("No autenticado");
   }
 
-  await assertAdmin(user.id);
+  await assertAdmin(user.id, user.email);
 
   const timezone = String(formData.get("timezone") ?? "Europe/Madrid");
   const employeeName = String(formData.get("employee_display_name") ?? "Equipo").trim();
@@ -56,7 +56,7 @@ export async function updateEmployeeRateAction(formData: FormData) {
     throw new Error("No autenticado");
   }
 
-  await assertAdmin(user.id);
+  await assertAdmin(user.id, user.email);
 
   const employeeId = String(formData.get("employee_id") ?? "");
   const hourlyRate = Number(formData.get("hourly_rate_eur") ?? 8);

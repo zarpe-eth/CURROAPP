@@ -19,6 +19,7 @@ create table if not exists public.work_sessions (
   status text not null default 'active' check (status in ('active', 'paused', 'completed')),
   duration_seconds integer,
   money_earned numeric(10,2),
+  one_hour_notified boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -59,6 +60,20 @@ create table if not exists public.ticket_stats (
   unique (user_id, stat_date)
 );
 
+create table if not exists public.daily_ticket_stats (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  stat_date date not null,
+  tickets_resolved integer not null default 0 check (tickets_resolved >= 0),
+  created_by uuid not null references public.profiles(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, stat_date)
+);
+
+create index if not exists daily_ticket_stats_user_date_idx
+on public.daily_ticket_stats(user_id, stat_date desc);
+
 create or replace function public.set_updated_at()
 returns trigger as $$
 begin
@@ -77,6 +92,10 @@ for each row execute function public.set_updated_at();
 
 create trigger app_settings_updated_at
 before update on public.app_settings
+for each row execute function public.set_updated_at();
+
+create trigger daily_ticket_stats_updated_at
+before update on public.daily_ticket_stats
 for each row execute function public.set_updated_at();
 
 create or replace function public.handle_new_user()
@@ -115,6 +134,7 @@ alter table public.work_sessions enable row level security;
 alter table public.work_breaks enable row level security;
 alter table public.app_settings enable row level security;
 alter table public.ticket_stats enable row level security;
+alter table public.daily_ticket_stats enable row level security;
 
 create or replace function public.is_admin(uid uuid)
 returns boolean
@@ -127,7 +147,10 @@ as $$
     select 1
     from public.profiles p
     where p.id = uid
-      and (p.role = 'admin' or p.email = 'silvestelar@gmail.com')
+      and (
+        p.role = 'admin'
+        or lower(trim(coalesce(p.email, ''))) = 'silvestelar@gmail.com'
+      )
   );
 $$;
 
@@ -238,6 +261,23 @@ on public.ticket_stats
 for update
 using (auth.uid() = user_id or public.is_admin(auth.uid()))
 with check (auth.uid() = user_id or public.is_admin(auth.uid()));
+
+-- Daily ticket stats
+create policy "daily_ticket_stats_select_own_or_admin"
+on public.daily_ticket_stats
+for select
+using (auth.uid() = user_id or public.is_admin(auth.uid()));
+
+create policy "daily_ticket_stats_insert_admin_only"
+on public.daily_ticket_stats
+for insert
+with check (public.is_admin(auth.uid()));
+
+create policy "daily_ticket_stats_update_admin_only"
+on public.daily_ticket_stats
+for update
+using (public.is_admin(auth.uid()))
+with check (public.is_admin(auth.uid()));
 
 insert into public.app_settings (hourly_rate_eur, timezone, employee_display_name)
 select 8, 'Europe/Madrid', 'Javi'

@@ -1,4 +1,4 @@
-import { EmployeeSelector } from "@/components/layout/employee-selector";
+﻿import { EmployeeSelector } from "@/components/layout/employee-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -8,7 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getProfile, getVisibleProfiles, requireUser, resolveSelectedUserId } from "@/lib/auth";
+import {
+  getVisibleProfiles,
+  isUserAdmin,
+  requireUser,
+  resolveSelectedUserId,
+} from "@/lib/auth";
 import { formatCurrency } from "@/lib/constants";
 import { getAppSettings, getSessionsByMonth } from "@/lib/data";
 import { formatDuration } from "@/lib/time/calc";
@@ -20,8 +25,8 @@ export default async function HistoryPage({
   searchParams: Promise<{ month?: string; userId?: string }>;
 }) {
   const user = await requireUser();
-  const profile = await getProfile(user.id);
-  const visibleProfiles = await getVisibleProfiles(user.id);
+  const isAdmin = await isUserAdmin(user.id, user.email);
+  const visibleProfiles = await getVisibleProfiles(user.id, user.email);
   const settings = await getAppSettings();
   const params = await searchParams;
   const month = params.month ?? getCurrentMonth();
@@ -31,9 +36,9 @@ export default async function HistoryPage({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Historial de jornadas</h1>
+        <h1 className="display-font text-3xl font-semibold">Historial de jornadas</h1>
         <div className="flex items-center gap-3">
-          {profile?.role === "admin" ? (
+          {isAdmin ? (
             <EmployeeSelector profiles={visibleProfiles} selectedUserId={selectedUserId} />
           ) : null}
           <form className="flex items-center gap-2" method="get">
@@ -52,7 +57,7 @@ export default async function HistoryPage({
         </div>
       </div>
 
-      <Card>
+      <Card className="animate-enter" style={{ animationDelay: "70ms" }}>
         <CardHeader>
           <CardTitle>Registro mensual</CardTitle>
         </CardHeader>
@@ -89,3 +94,5 @@ export default async function HistoryPage({
     </section>
   );
 }
+
+

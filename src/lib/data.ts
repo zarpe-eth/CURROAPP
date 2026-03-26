@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_EMPLOYEE_NAME, DEFAULT_HOURLY_RATE, DEFAULT_TIMEZONE } from "@/lib/constants";
 import { calculateEffectiveDurationSeconds, calculateMoneyFromSeconds } from "@/lib/time/calc";
 import { getMonthRangeInTimezone, getTodayRangeInTimezone } from "@/lib/time/dates";
-import type { AppSettings, DailyHoursPoint, WorkSession } from "@/types/domain";
+import type { AppSettings, DailyHoursPoint, DailyTicketStat, WorkSession } from "@/types/domain";
 
 export async function getAppSettings(): Promise<AppSettings> {
   const supabase = await createClient();
@@ -110,6 +110,64 @@ export async function getSessionsByMonth(
 
   const { data } = await query;
   return (data ?? []) as WorkSession[];
+}
+
+export async function getDailyTicketStatsByMonth(month: string, userId?: string): Promise<DailyTicketStat[]> {
+  const supabase = await createClient();
+  const [year, mon] = month.split("-").map(Number);
+  const startDate = `${year}-${String(mon).padStart(2, "0")}-01`;
+  const endYear = mon === 12 ? year + 1 : year;
+  const endMonth = mon === 12 ? 1 : mon + 1;
+  const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+
+  let query = supabase
+    .from("daily_ticket_stats")
+    .select("*")
+    .gte("stat_date", startDate)
+    .lt("stat_date", endDate)
+    .order("stat_date", { ascending: true });
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query;
+
+  if (error?.message?.includes("Could not find the table 'public.daily_ticket_stats'")) {
+    let legacyQuery = supabase
+      .from("ticket_stats")
+      .select("id,user_id,stat_date,tickets_responded,created_at")
+      .gte("stat_date", startDate)
+      .lt("stat_date", endDate)
+      .order("stat_date", { ascending: true });
+
+    if (userId) {
+      legacyQuery = legacyQuery.eq("user_id", userId);
+    }
+
+    const { data: legacy } = await legacyQuery;
+    return (legacy ?? []).map((item) => {
+      const row = item as {
+        id: string;
+        user_id: string;
+        stat_date: string;
+        tickets_responded: number;
+        created_at: string;
+      };
+
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        stat_date: row.stat_date,
+        tickets_resolved: row.tickets_responded ?? 0,
+        created_by: row.user_id,
+        created_at: row.created_at,
+        updated_at: row.created_at,
+      } satisfies DailyTicketStat;
+    });
+  }
+
+  return (data ?? []) as DailyTicketStat[];
 }
 
 export function buildMonthlyMetrics(sessions: WorkSession[], hourlyRate: number, timezone: string) {

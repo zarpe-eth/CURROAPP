@@ -1,7 +1,13 @@
-import { MonthlyHoursChart } from "@/components/charts/monthly-hours-chart";
+﻿import { MonthlyHoursChart } from "@/components/charts/monthly-hours-chart";
 import { EmployeeSelector } from "@/components/layout/employee-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getProfile, getVisibleProfiles, requireUser, resolveSelectedUserId } from "@/lib/auth";
+import {
+  getProfile,
+  getVisibleProfiles,
+  isUserAdmin,
+  requireUser,
+  resolveSelectedUserId,
+} from "@/lib/auth";
 import { formatCurrency } from "@/lib/constants";
 import { buildMonthlyMetrics, getAppSettings, getSessionsByMonth } from "@/lib/data";
 import { getCurrentMonth } from "@/lib/time/dates";
@@ -13,7 +19,8 @@ export default async function MonthlyPage({
 }) {
   const user = await requireUser();
   const profile = await getProfile(user.id);
-  const visibleProfiles = await getVisibleProfiles(user.id);
+  const isAdmin = await isUserAdmin(user.id, user.email);
+  const visibleProfiles = await getVisibleProfiles(user.id, user.email);
   const settings = await getAppSettings();
   const params = await searchParams;
   const month = params.month ?? getCurrentMonth();
@@ -25,14 +32,14 @@ export default async function MonthlyPage({
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Resumen mensual</h1>
+        <h1 className="display-font text-3xl font-semibold">Resumen mensual</h1>
         <div className="flex items-center gap-3">
-          {profile?.role === "admin" ? (
+          {isAdmin ? (
             <EmployeeSelector profiles={visibleProfiles} selectedUserId={selectedUserId} />
           ) : null}
           <form className="flex items-center gap-2" method="get">
             <input type="hidden" name="userId" value={selectedUserId} />
-            <label htmlFor="month" className="text-sm text-muted-foreground">
+            <label htmlFor="month" className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Mes
             </label>
             <input
@@ -53,9 +60,12 @@ export default async function MonthlyPage({
         <MetricCard label="Dinero mes" value={formatCurrency(metrics.monthlyMoney)} />
       </div>
 
-      <Card>
+      <Card className="animate-enter" style={{ animationDelay: "80ms" }}>
         <CardHeader>
           <CardTitle>Horas por dia</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Visualizacion diaria del mes seleccionado para detectar picos y regularidad.
+          </p>
         </CardHeader>
         <CardContent>
           <MonthlyHoursChart data={metrics.dailyHours} />
@@ -67,13 +77,15 @@ export default async function MonthlyPage({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <Card>
+    <Card className="animate-enter" style={{ animationDelay: "80ms" }}>
       <CardHeader className="pb-2">
-        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold">{value}</p>
+        <p className="display-font text-3xl font-semibold">{value}</p>
       </CardContent>
     </Card>
   );
 }
+
+

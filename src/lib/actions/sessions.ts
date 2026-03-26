@@ -215,3 +215,32 @@ export async function stopSessionAction() {
   revalidatePath("/monthly");
 }
 
+export async function markOneHourNotifiedAction(sessionId: string) {
+  const supabase = await createClient();
+  const userId = await getCurrentUserId();
+
+  if (!sessionId) {
+    return false;
+  }
+
+  const { data, error } = await supabase
+    .from("work_sessions")
+    .update({ one_hour_notified: true })
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .eq("one_hour_notified", false)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return false;
+  }
+
+  revalidatePath("/dashboard");
+  return true;
+}
+

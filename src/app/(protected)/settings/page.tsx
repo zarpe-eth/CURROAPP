@@ -1,8 +1,8 @@
-import { updatePasswordAction } from "@/lib/actions/auth";
+﻿import { updatePasswordAction } from "@/lib/actions/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getProfile, requireUser } from "@/lib/auth";
+import { isUserAdmin, requireUser } from "@/lib/auth";
 import { getAppSettings } from "@/lib/data";
 import { updateSettingsAction } from "@/lib/actions/settings";
 
@@ -12,17 +12,16 @@ export default async function SettingsPage({
   searchParams: Promise<{ pwError?: string; pwOk?: string }>;
 }) {
   const user = await requireUser();
-  const profile = await getProfile(user.id);
   const settings = await getAppSettings();
   const params = await searchParams;
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = await isUserAdmin(user.id, user.email);
 
   return (
     <section className="max-w-3xl space-y-4">
-      <h1 className="text-2xl font-semibold">Ajustes</h1>
+      <h1 className="display-font text-3xl font-semibold">Ajustes</h1>
 
       {isAdmin ? (
-        <Card>
+        <Card className="animate-enter" style={{ animationDelay: "70ms" }}>
           <CardHeader>
             <CardTitle>Configuracion global</CardTitle>
             <CardDescription>
@@ -49,7 +48,7 @@ export default async function SettingsPage({
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="animate-enter" style={{ animationDelay: "70ms" }}>
         <CardHeader>
           <CardTitle>Seguridad</CardTitle>
           <CardDescription>Cambia tu contrasena de acceso.</CardDescription>
@@ -77,3 +76,5 @@ export default async function SettingsPage({
     </section>
   );
 }
+
+
